@@ -5,7 +5,6 @@ This document describes the process for creating a new release of the Terraform 
 ## Prerequisites
 
 - Write access to the repository
-- GPG key configured for signing (for releases)
 - GitHub CLI (`gh`) installed (optional, for easier releases)
 
 ## Release Steps
@@ -112,7 +111,6 @@ See [VERSIONING.md](VERSIONING.md) for details.
 
 ### Release workflow failed
 - Check GitHub Actions logs
-- Verify GPG keys are configured
 - Ensure tag format is correct (`v0.1.0`)
 
 ### Terraform Registry not updating

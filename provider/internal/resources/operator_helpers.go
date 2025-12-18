@@ -12,16 +12,7 @@ import (
 	"k8s.io/client-go/dynamic"
 )
 
-const (
-	subscriptionGVR = "operators.coreos.com/v1alpha1"
-	subscriptionKind = "Subscription"
-	operatorGroupGVR = "operators.coreos.com/v1"
-	operatorGroupKind = "OperatorGroup"
-	installPlanGVR   = "operators.coreos.com/v1alpha1"
-	installPlanKind  = "InstallPlan"
-	csvGVR           = "operators.coreos.com/v1alpha1"
-	csvKind          = "ClusterServiceVersion"
-)
+// No constants needed - GVRs are created inline where used
 
 // Helper functions for operator resource management
 
@@ -91,9 +82,9 @@ func createSubscription(ctx context.Context, client dynamic.Interface, namespace
 	spec := map[string]interface{}{
 		"channel":             channel,
 		"name":                name,
-		"source":               source,
-		"sourceNamespace":      sourceNamespace,
-		"installPlanApproval":  installPlanApproval,
+		"source":              source,
+		"sourceNamespace":     sourceNamespace,
+		"installPlanApproval": installPlanApproval,
 	}
 
 	if startingCSV != "" {
@@ -106,7 +97,7 @@ func createSubscription(ctx context.Context, client dynamic.Interface, namespace
 			"kind":       "Subscription",
 			"metadata": map[string]interface{}{
 				"name":      name,
-				"namespace":  namespace,
+				"namespace": namespace,
 				"labels":    labels,
 			},
 			"spec": spec,

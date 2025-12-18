@@ -1,3 +1,4 @@
+// Package version provides version information for the Terraform provider.
 package version
 
 import (
@@ -27,4 +28,3 @@ func String() string {
 func UserAgent() string {
 	return fmt.Sprintf("terraform-provider-openshift/%s", Version)
 }
-

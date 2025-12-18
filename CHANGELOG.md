@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.1] - 2025-12-18
+
+### Fixed
+- Fixed golangci-lint configuration compatibility issues
+- Fixed all linting errors (errcheck, revive, staticcheck, unused)
+- Fixed TLSClientConfig field access warnings
+- Added missing package comments for all packages
+- Fixed unused variables and parameters
+- Removed duplicate version.go file
+
+### Changed
+- Removed GPG signing requirement from release workflow (checksums only)
+- Updated release documentation to remove GPG prerequisites
+- Improved code quality and maintainability
+
 ## [0.1.0] - 2025-12-18
 
 ### Added
@@ -36,5 +51,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Provider namespace set to `rh-mobb/openshift` for Terraform Registry publication
 
-[Unreleased]: https://github.com/rh-mobb/terraform-provider-openshift/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/rh-mobb/terraform-provider-openshift/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/rh-mobb/terraform-provider-openshift/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/rh-mobb/terraform-provider-openshift/releases/tag/v0.1.0

@@ -1,3 +1,4 @@
+// Package client provides a Kubernetes client wrapper for the Terraform provider.
 package client
 
 import (
@@ -11,12 +12,15 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 )
 
+// Client wraps Kubernetes clients for use by the Terraform provider.
 type Client struct {
 	Kubernetes kubernetes.Interface
 	Dynamic    dynamic.Interface
 	Config     *rest.Config
 }
 
+// NewClient creates a new Kubernetes client with the given configuration.
+// It supports kubeconfig files, host/token authentication, or in-cluster config.
 func NewClient(kubeconfig, host, token string, insecure bool) (*Client, error) {
 	var config *rest.Config
 	var err error
@@ -37,7 +41,10 @@ func NewClient(kubeconfig, host, token string, insecure bool) (*Client, error) {
 		}
 	} else {
 		// Try to use kubeconfig from default locations
-		home, _ := os.UserHomeDir()
+		home, err := os.UserHomeDir()
+		if err != nil {
+			return nil, fmt.Errorf("failed to get user home directory: %w", err)
+		}
 		kubeconfigPath := filepath.Join(home, ".kube", "config")
 		if _, err := os.Stat(kubeconfigPath); err == nil {
 			config, err = clientcmd.BuildConfigFromFlags("", kubeconfigPath)
@@ -61,14 +68,10 @@ func NewClient(kubeconfig, host, token string, insecure bool) (*Client, error) {
 		config.BearerToken = token
 	}
 	if insecure {
-		config.TLSClientConfig = rest.TLSClientConfig{
-			Insecure: true,
-		}
-	} else if config.TLSClientConfig.CAFile == "" && config.TLSClientConfig.CAData == nil {
+		config.Insecure = true
+	} else if config.CAFile == "" && config.CAData == nil {
 		// Set insecure if no CA is configured
-		config.TLSClientConfig = rest.TLSClientConfig{
-			Insecure: true,
-		}
+		config.Insecure = true
 	}
 
 	// Create clients
@@ -91,7 +94,7 @@ func NewClient(kubeconfig, host, token string, insecure bool) (*Client, error) {
 
 // VerifyTLSConfig ensures TLS is properly configured
 func (c *Client) VerifyTLSConfig() error {
-	if c.Config.TLSClientConfig.Insecure {
+	if c.Config.Insecure {
 		return nil
 	}
 

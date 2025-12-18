@@ -1,0 +1,51 @@
+version: "2"
+
+run:
+  tests: true
+
+linters:
+  enable:
+    - errcheck
+    - govet
+    - ineffassign
+    - staticcheck
+    - unused
+    - misspell
+    - revive
+    - gosec
+  settings:
+    errcheck:
+      check-type-assertions: true
+      check-blank: false
+    revive:
+      rules:
+        - name: exported
+          severity: warning
+        - name: var-naming
+          severity: warning
+        - name: var-declaration
+          severity: warning
+        - name: package-comments
+          severity: warning
+        - name: comment-spacings
+          severity: warning
+  exclusions:
+    rules:
+      - linters:
+          - errcheck
+        path: _test\.go
+      - linters:
+          - errcheck
+        # Ignore d.Set() error returns in data sources (non-fatal in read functions)
+        path: _data\.go
+        source: ^.*d\.Set.*$
+      - linters:
+          - staticcheck
+        source: ^.*TLSClientConfig.*$
+      - linters:
+          - staticcheck
+        source: ^.*plugin\.Debug.*$
+
+issues:
+  max-issues-per-linter: 0
+  max-same-issues: 0

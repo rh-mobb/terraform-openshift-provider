@@ -12,20 +12,12 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
 
     - name: Set up Go
-      uses: actions/setup-go@v5
+      uses: actions/setup-go@v6
       with:
         go-version: '1.21'
-
-    - name: Set up GPG
-      env:
-        GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
-        PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
-      run: |
-        echo "$GPG_PRIVATE_KEY" | gpg --import --batch --yes
-        echo "$PASSPHRASE" | gpg --pinentry-mode loopback --passphrase-fd 0 --sign-key $(gpg --list-secret-keys --keyid-format LONG | grep sec | awk '{print $2}' | cut -d'/' -f2)
 
     - name: Get version from tag
       id: get_version
@@ -52,7 +44,6 @@ jobs:
       working-directory: ./provider/dist
       run: |
         sha256sum terraform-provider-openshift_* > terraform-provider-openshift_${GITHUB_REF#refs/tags/}_SHA256SUMS
-        gpg --detach-sign terraform-provider-openshift_${GITHUB_REF#refs/tags/}_SHA256SUMS
 
     - name: Create GitHub Release
       uses: softprops/action-gh-release@v1

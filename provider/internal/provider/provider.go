@@ -1,3 +1,4 @@
+// Package provider implements the Terraform provider for OpenShift operators.
 package provider
 
 import (
@@ -10,6 +11,7 @@ import (
 	"github.com/redhat/terraform-provider-openshift-operator/internal/resources"
 )
 
+// New creates and returns a new Terraform provider instance.
 func New() *schema.Provider {
 	return &schema.Provider{
 		Schema: map[string]*schema.Schema{
@@ -46,21 +48,29 @@ func New() *schema.Provider {
 	}
 }
 
-func configureProvider(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
+func configureProvider(_ context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
 	var kubeconfig, host, token string
 	var insecure bool
 
 	if v, ok := d.GetOk("kubeconfig"); ok {
-		kubeconfig = v.(string)
+		if s, ok := v.(string); ok {
+			kubeconfig = s
+		}
 	}
 	if v, ok := d.GetOk("host"); ok {
-		host = v.(string)
+		if s, ok := v.(string); ok {
+			host = s
+		}
 	}
 	if v, ok := d.GetOk("token"); ok {
-		token = v.(string)
+		if s, ok := v.(string); ok {
+			token = s
+		}
 	}
 	if v, ok := d.GetOk("insecure"); ok {
-		insecure = v.(bool)
+		if b, ok := v.(bool); ok {
+			insecure = b
+		}
 	}
 
 	cl, err := client.NewClient(kubeconfig, host, token, insecure)

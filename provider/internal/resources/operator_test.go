@@ -46,8 +46,8 @@ func TestResourceOperatorSchema(t *testing.T) {
 	optionalFields := map[string]interface{}{
 		"install_plan_approval": "Automatic",
 		"create_namespace":      true,
-		"wait_for_csv":         true,
-		"wait_timeout":         "10m",
+		"wait_for_csv":          true,
+		"wait_timeout":          "10m",
 	}
 
 	for field, expectedDefault := range optionalFields {

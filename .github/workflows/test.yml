@@ -1,5 +1,8 @@
 name: Test
 
+# This workflow runs on:
+# - Push to main or develop branches
+# - Pull requests targeting main or develop branches
 on:
   push:
     branches: [ main, develop ]
@@ -13,10 +16,10 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
 
     - name: Set up Go
-      uses: actions/setup-go@v5
+      uses: actions/setup-go@v6
       with:
         go-version: '1.21'
 
@@ -49,18 +52,29 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
 
     - name: Set up Go
-      uses: actions/setup-go@v5
+      uses: actions/setup-go@v6
       with:
         go-version: '1.21'
 
-    - name: Run golangci-lint
-      uses: golangci/golangci-lint-action@v6
+    - name: Verify formatting
+      working-directory: ./provider
+      run: |
+        go fmt ./...
+        if ! git diff --quiet; then
+          echo "Code is not formatted. Run 'make fmt' to fix."
+          git diff
+          exit 1
+        fi
+
+    - name: golangci-lint
+      uses: golangci/golangci-lint-action@v9
       with:
-        version: latest
+        version: v2.7.2
         working-directory: ./provider
+        args: --timeout=5m
 
   build:
     name: Build
@@ -72,19 +86,19 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
 
     - name: Set up Go
-      uses: actions/setup-go@v5
+      uses: actions/setup-go@v6
       with:
         go-version: ${{ matrix.go-version }}
 
     - name: Build provider
       working-directory: ./provider
-      run: go build -o terraform-provider-openshift-operator
+      run: make build
 
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
       with:
         name: provider-${{ matrix.os }}
-        path: provider/terraform-provider-openshift-operator
+        path: provider/terraform-provider-openshift

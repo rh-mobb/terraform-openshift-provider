@@ -82,11 +82,20 @@ func DataSourceOperator() *schema.Resource {
 }
 
 func dataSourceOperatorRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	c := meta.(*client.Client)
+	c, ok := meta.(*client.Client)
+	if !ok {
+		return diag.FromErr(fmt.Errorf("invalid client type"))
+	}
 	dynamicClient := c.Dynamic
 
-	namespace := d.Get("namespace").(string)
-	name := d.Get("name").(string)
+	namespace, ok := d.Get("namespace").(string)
+	if !ok {
+		return diag.FromErr(fmt.Errorf("namespace must be a string"))
+	}
+	name, ok := d.Get("name").(string)
+	if !ok {
+		return diag.FromErr(fmt.Errorf("name must be a string"))
+	}
 
 	// Validate inputs
 	if namespace == "" {
@@ -109,70 +118,83 @@ func dataSourceOperatorRead(ctx context.Context, d *schema.ResourceData, meta in
 	}
 
 	// Read Subscription spec
-	if spec, found, _ := unstructured.NestedMap(sub.Object, "spec"); found {
-		if channel, found, _ := unstructured.NestedString(spec, "channel"); found {
-			d.Set("channel", channel)
+	spec, found, err := unstructured.NestedMap(sub.Object, "spec")
+	if err == nil && found {
+		channel, found, _ := unstructured.NestedString(spec, "channel")
+		if found {
+			_ = d.Set("channel", channel)
 		}
-		if source, found, _ := unstructured.NestedString(spec, "source"); found {
-			d.Set("source", source)
+		source, found, _ := unstructured.NestedString(spec, "source")
+		if found {
+			_ = d.Set("source", source)
 		}
-		if installPlanApproval, found, _ := unstructured.NestedString(spec, "installPlanApproval"); found {
-			d.Set("install_plan_approval", installPlanApproval)
+		installPlanApproval, found, _ := unstructured.NestedString(spec, "installPlanApproval")
+		if found {
+			_ = d.Set("install_plan_approval", installPlanApproval)
 		}
-		if startingCSV, found, _ := unstructured.NestedString(spec, "startingCSV"); found && startingCSV != "" {
-			d.Set("version", startingCSV)
+		startingCSV, found, _ := unstructured.NestedString(spec, "startingCSV")
+		if found && startingCSV != "" {
+			_ = d.Set("version", startingCSV)
 			// Extract version from CSV name format: {name}.v{version}
 			if strings.HasPrefix(startingCSV, name+".v") {
 				version := strings.TrimPrefix(startingCSV, name+".v")
-				d.Set("version", version)
+				_ = d.Set("version", version)
 			}
 		}
 	}
 
 	// Read Subscription status
-	if status, found, _ := unstructured.NestedMap(sub.Object, "status"); found {
-		if installedCSV, found, _ := unstructured.NestedString(status, "installedCSV"); found && installedCSV != "" {
-			d.Set("installed_csv", installedCSV)
-			d.Set("current_csv", installedCSV)
+	status, found, err := unstructured.NestedMap(sub.Object, "status")
+	if err == nil && found {
+		installedCSV, found, _ := unstructured.NestedString(status, "installedCSV")
+		if found && installedCSV != "" {
+			_ = d.Set("installed_csv", installedCSV)
+			_ = d.Set("current_csv", installedCSV)
 
 			// Extract version from CSV name
 			if strings.HasPrefix(installedCSV, name+".v") {
 				version := strings.TrimPrefix(installedCSV, name+".v")
-				d.Set("installed_csv_version", version)
+				_ = d.Set("installed_csv_version", version)
 			}
 
 			// Read CSV details
 			csv, err := getCSV(ctx, dynamicClient, namespace, installedCSV)
 			if err == nil {
 				// Read CSV spec for version
-				if csvSpec, found, _ := unstructured.NestedMap(csv.Object, "spec"); found {
-					if csvVersion, found, _ := unstructured.NestedString(csvSpec, "version"); found {
-						d.Set("csv_version", csvVersion)
+				csvSpec, found, _ := unstructured.NestedMap(csv.Object, "spec")
+				if found {
+					csvVersion, found, _ := unstructured.NestedString(csvSpec, "version")
+					if found {
+						_ = d.Set("csv_version", csvVersion)
 					}
 				}
 
 				// Read CSV status for phase
-				if csvStatus, found, _ := unstructured.NestedMap(csv.Object, "status"); found {
-					if phase, found, _ := unstructured.NestedString(csvStatus, "phase"); found {
-						d.Set("csv_phase", phase)
+				csvStatus, found, _ := unstructured.NestedMap(csv.Object, "status")
+				if found {
+					phase, found, _ := unstructured.NestedString(csvStatus, "phase")
+					if found {
+						_ = d.Set("csv_phase", phase)
 					}
 				}
 			}
 		}
 
-		if currentCSV, found, _ := unstructured.NestedString(status, "currentCSV"); found && currentCSV != "" {
-			d.Set("current_csv", currentCSV)
+		currentCSV, found, _ := unstructured.NestedString(status, "currentCSV")
+		if found && currentCSV != "" {
+			_ = d.Set("current_csv", currentCSV)
 		}
 
-		if state, found, _ := unstructured.NestedString(status, "state"); found {
-			d.Set("subscription_state", state)
+		state, found, _ := unstructured.NestedString(status, "state")
+		if found {
+			_ = d.Set("subscription_state", state)
 		}
 	}
 
 	// Set ID and required fields
 	d.SetId(fmt.Sprintf("%s/%s", namespace, name))
-	d.Set("namespace", namespace)
-	d.Set("name", name)
+	_ = d.Set("namespace", namespace)
+	_ = d.Set("name", name)
 
 	return nil
 }

@@ -2,7 +2,7 @@
   "namespace": "rh-mobb",
   "name": "openshift",
   "provider": "openshift",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "published_at": "2025-12-18T00:00:00Z",
   "logo_url": "",
   "tagline": "Manage OpenShift operators with simplified lifecycle management",

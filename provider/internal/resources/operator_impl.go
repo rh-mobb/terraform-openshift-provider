@@ -15,17 +15,44 @@ import (
 )
 
 func resourceOperatorCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	c := meta.(*client.Client)
+	c, ok := meta.(*client.Client)
+	if !ok {
+		return diag.FromErr(fmt.Errorf("invalid client type"))
+	}
 	dynamicClient := c.Dynamic
 
-	namespace := d.Get("namespace").(string)
-	name := d.Get("name").(string)
-	channel := d.Get("channel").(string)
-	source := d.Get("source").(string)
-	version := d.Get("version").(string)
-	installPlanApproval := d.Get("install_plan_approval").(string)
-	shouldCreateNamespace := d.Get("create_namespace").(bool)
-	waitForCSV := d.Get("wait_for_csv").(bool)
+	namespace, ok := d.Get("namespace").(string)
+	if !ok {
+		return diag.FromErr(fmt.Errorf("namespace must be a string"))
+	}
+	name, ok := d.Get("name").(string)
+	if !ok {
+		return diag.FromErr(fmt.Errorf("name must be a string"))
+	}
+	channel, ok := d.Get("channel").(string)
+	if !ok {
+		return diag.FromErr(fmt.Errorf("channel must be a string"))
+	}
+	source, ok := d.Get("source").(string)
+	if !ok {
+		return diag.FromErr(fmt.Errorf("source must be a string"))
+	}
+	version, ok := d.Get("version").(string)
+	if !ok {
+		return diag.FromErr(fmt.Errorf("version must be a string"))
+	}
+	installPlanApproval, ok := d.Get("install_plan_approval").(string)
+	if !ok {
+		return diag.FromErr(fmt.Errorf("install_plan_approval must be a string"))
+	}
+	shouldCreateNamespace, ok := d.Get("create_namespace").(bool)
+	if !ok {
+		return diag.FromErr(fmt.Errorf("create_namespace must be a bool"))
+	}
+	waitForCSV, ok := d.Get("wait_for_csv").(bool)
+	if !ok {
+		return diag.FromErr(fmt.Errorf("wait_for_csv must be a bool"))
+	}
 
 	// Validate inputs
 	if namespace == "" {
@@ -49,8 +76,10 @@ func resourceOperatorCreate(ctx context.Context, d *schema.ResourceData, meta in
 	// Build labels
 	labels := make(map[string]interface{})
 	if v, ok := d.GetOk("labels"); ok {
-		for k, v := range v.(map[string]interface{}) {
-			labels[k] = v
+		if labelMap, ok := v.(map[string]interface{}); ok {
+			for k, v := range labelMap {
+				labels[k] = v
+			}
 		}
 	}
 	labels["app.kubernetes.io/managed-by"] = "Terraform"
@@ -59,8 +88,12 @@ func resourceOperatorCreate(ctx context.Context, d *schema.ResourceData, meta in
 	// Build namespace labels
 	namespaceLabels := make(map[string]string)
 	if v, ok := d.GetOk("namespace_labels"); ok {
-		for k, v := range v.(map[string]interface{}) {
-			namespaceLabels[k] = v.(string)
+		if labelMap, ok := v.(map[string]interface{}); ok {
+			for k, v := range labelMap {
+				if strVal, ok := v.(string); ok {
+					namespaceLabels[k] = strVal
+				}
+			}
 		}
 	}
 
@@ -76,7 +109,10 @@ func resourceOperatorCreate(ctx context.Context, d *schema.ResourceData, meta in
 
 	// 2. Create OperatorGroup
 	operatorGroupName := fmt.Sprintf("%s-operatorgroup", name)
-	targetNamespaces := d.Get("operator_group_target_namespaces").([]interface{})
+	targetNamespaces, ok := d.Get("operator_group_target_namespaces").([]interface{})
+	if !ok {
+		return diag.FromErr(fmt.Errorf("operator_group_target_namespaces must be a list"))
+	}
 	if err := createOperatorGroup(ctx, dynamicClient, namespace, operatorGroupName, targetNamespaces, labels); err != nil {
 		if !strings.Contains(err.Error(), "already exists") && !strings.Contains(err.Error(), "AlreadyExists") {
 			return diag.FromErr(fmt.Errorf("failed to create OperatorGroup %s in namespace %s: %w", operatorGroupName, namespace, err))
@@ -155,7 +191,10 @@ func resourceOperatorCreate(ctx context.Context, d *schema.ResourceData, meta in
 	// 5. Wait for CSV to be Succeeded if requested
 	var csvPhase string
 	if waitForCSV {
-		waitTimeoutStr := d.Get("wait_timeout").(string)
+		waitTimeoutStr, ok := d.Get("wait_timeout").(string)
+		if !ok {
+			return diag.FromErr(fmt.Errorf("wait_timeout must be a string"))
+		}
 		waitTimeout, err := time.ParseDuration(waitTimeoutStr)
 		if err != nil {
 			return diag.FromErr(fmt.Errorf("invalid wait_timeout format: %w", err))
@@ -193,14 +232,17 @@ func resourceOperatorCreate(ctx context.Context, d *schema.ResourceData, meta in
 
 	// Set ID and state
 	d.SetId(fmt.Sprintf("%s/%s", namespace, name))
-	d.Set("installed_csv", csvName)
-	d.Set("csv_phase", csvPhase)
+	_ = d.Set("installed_csv", csvName)
+	_ = d.Set("csv_phase", csvPhase)
 
 	return resourceOperatorRead(ctx, d, meta)
 }
 
 func resourceOperatorRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	c := meta.(*client.Client)
+	c, ok := meta.(*client.Client)
+	if !ok {
+		return diag.FromErr(fmt.Errorf("invalid client type"))
+	}
 	dynamicClient := c.Dynamic
 
 	idParts := strings.Split(d.Id(), "/")
@@ -221,20 +263,20 @@ func resourceOperatorRead(ctx context.Context, d *schema.ResourceData, meta inte
 	// Read Subscription spec to populate state
 	if spec, found, _ := unstructured.NestedMap(sub.Object, "spec"); found {
 		if channel, found, _ := unstructured.NestedString(spec, "channel"); found {
-			d.Set("channel", channel)
+			_ = d.Set("channel", channel)
 		}
 		if source, found, _ := unstructured.NestedString(spec, "source"); found {
-			d.Set("source", source)
+			_ = d.Set("source", source)
 		}
 		if installPlanApproval, found, _ := unstructured.NestedString(spec, "installPlanApproval"); found {
-			d.Set("install_plan_approval", installPlanApproval)
+			_ = d.Set("install_plan_approval", installPlanApproval)
 		}
 		if startingCSV, found, _ := unstructured.NestedString(spec, "startingCSV"); found && startingCSV != "" {
 			// Extract version from CSV name format: {name}.v{version}
 			// This is a best-effort extraction
 			if strings.HasPrefix(startingCSV, name+".v") {
 				version := strings.TrimPrefix(startingCSV, name+".v")
-				d.Set("version", version)
+				_ = d.Set("version", version)
 			}
 		}
 	}
@@ -250,7 +292,7 @@ func resourceOperatorRead(ctx context.Context, d *schema.ResourceData, meta inte
 				}
 			}
 			if len(resourceLabels) > 0 {
-				d.Set("labels", resourceLabels)
+				_ = d.Set("labels", resourceLabels)
 			}
 		}
 	}
@@ -258,14 +300,14 @@ func resourceOperatorRead(ctx context.Context, d *schema.ResourceData, meta inte
 	// Read CSV if available
 	if status, found, _ := unstructured.NestedMap(sub.Object, "status"); found {
 		if csvName, found, _ := unstructured.NestedString(status, "installedCSV"); found && csvName != "" {
-			d.Set("installed_csv", csvName)
+			_ = d.Set("installed_csv", csvName)
 
 			// Read CSV phase
 			csv, err := getCSV(ctx, dynamicClient, namespace, csvName)
 			if err == nil {
 				if csvStatus, found, _ := unstructured.NestedMap(csv.Object, "status"); found {
 					if phase, found, _ := unstructured.NestedString(csvStatus, "phase"); found {
-						d.Set("csv_phase", phase)
+						_ = d.Set("csv_phase", phase)
 					}
 				}
 			}
@@ -273,14 +315,17 @@ func resourceOperatorRead(ctx context.Context, d *schema.ResourceData, meta inte
 	}
 
 	// Set namespace and name
-	d.Set("namespace", namespace)
-	d.Set("name", name)
+	_ = d.Set("namespace", namespace)
+	_ = d.Set("name", name)
 
 	return nil
 }
 
 func resourceOperatorUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	c := meta.(*client.Client)
+	c, ok := meta.(*client.Client)
+	if !ok {
+		return diag.FromErr(fmt.Errorf("invalid client type"))
+	}
 	dynamicClient := c.Dynamic
 
 	idParts := strings.Split(d.Id(), "/")
@@ -301,7 +346,10 @@ func resourceOperatorUpdate(ctx context.Context, d *schema.ResourceData, meta in
 
 	// Update channel if changed
 	if d.HasChange("channel") {
-		channel := d.Get("channel").(string)
+		channel, ok := d.Get("channel").(string)
+		if !ok {
+			return diag.FromErr(fmt.Errorf("channel must be a string"))
+		}
 		if err := unstructured.SetNestedField(sub.Object, channel, "spec", "channel"); err != nil {
 			return diag.FromErr(fmt.Errorf("failed to update channel: %w", err))
 		}
@@ -310,7 +358,10 @@ func resourceOperatorUpdate(ctx context.Context, d *schema.ResourceData, meta in
 
 	// Update source if changed
 	if d.HasChange("source") {
-		source := d.Get("source").(string)
+		source, ok := d.Get("source").(string)
+		if !ok {
+			return diag.FromErr(fmt.Errorf("source must be a string"))
+		}
 		if err := unstructured.SetNestedField(sub.Object, source, "spec", "source"); err != nil {
 			return diag.FromErr(fmt.Errorf("failed to update source: %w", err))
 		}
@@ -319,7 +370,10 @@ func resourceOperatorUpdate(ctx context.Context, d *schema.ResourceData, meta in
 
 	// Update install plan approval if changed
 	if d.HasChange("install_plan_approval") {
-		installPlanApproval := d.Get("install_plan_approval").(string)
+		installPlanApproval, ok := d.Get("install_plan_approval").(string)
+		if !ok {
+			return diag.FromErr(fmt.Errorf("install_plan_approval must be a string"))
+		}
 		if err := unstructured.SetNestedField(sub.Object, installPlanApproval, "spec", "installPlanApproval"); err != nil {
 			return diag.FromErr(fmt.Errorf("failed to update installPlanApproval: %w", err))
 		}
@@ -328,7 +382,10 @@ func resourceOperatorUpdate(ctx context.Context, d *schema.ResourceData, meta in
 
 	// Update version/startingCSV if changed
 	if d.HasChange("version") {
-		version := d.Get("version").(string)
+		version, ok := d.Get("version").(string)
+		if !ok {
+			return diag.FromErr(fmt.Errorf("version must be a string"))
+		}
 		if version != "" {
 			// If version is specified, force Manual approval
 			if err := unstructured.SetNestedField(sub.Object, "Manual", "spec", "installPlanApproval"); err != nil {
@@ -349,8 +406,10 @@ func resourceOperatorUpdate(ctx context.Context, d *schema.ResourceData, meta in
 	if d.HasChange("labels") {
 		labels := make(map[string]interface{})
 		if v, ok := d.GetOk("labels"); ok {
-			for k, v := range v.(map[string]interface{}) {
-				labels[k] = v
+			if labelMap, ok := v.(map[string]interface{}); ok {
+				for k, v := range labelMap {
+					labels[k] = v
+				}
 			}
 		}
 		labels["app.kubernetes.io/managed-by"] = "Terraform"
@@ -376,7 +435,10 @@ func resourceOperatorUpdate(ctx context.Context, d *schema.ResourceData, meta in
 		}
 
 		// If Manual approval and version changed, approve new InstallPlan
-		installPlanApproval := d.Get("install_plan_approval").(string)
+		installPlanApproval, ok := d.Get("install_plan_approval").(string)
+		if !ok {
+			return diag.FromErr(fmt.Errorf("install_plan_approval must be a string"))
+		}
 		if installPlanApproval == "Manual" || d.HasChange("version") {
 			// Wait for new InstallPlan reference
 			timeout := 5 * time.Minute
@@ -391,16 +453,23 @@ func resourceOperatorUpdate(ctx context.Context, d *schema.ResourceData, meta in
 				timeout = 10 * time.Minute
 				csvName, err := waitForInstalledCSV(ctx, dynamicClient, namespace, name, timeout)
 				if err == nil {
-					d.Set("installed_csv", csvName)
+					_ = d.Set("installed_csv", csvName)
 
 					// Wait for CSV to succeed if requested
-					if d.Get("wait_for_csv").(bool) {
-						waitTimeoutStr := d.Get("wait_timeout").(string)
+					waitForCSV, ok := d.Get("wait_for_csv").(bool)
+					if !ok {
+						return diag.FromErr(fmt.Errorf("wait_for_csv must be a bool"))
+					}
+					if waitForCSV {
+						waitTimeoutStr, ok := d.Get("wait_timeout").(string)
+						if !ok {
+							return diag.FromErr(fmt.Errorf("wait_timeout must be a string"))
+						}
 						waitTimeout, err := time.ParseDuration(waitTimeoutStr)
 						if err == nil {
 							csvPhase, err := waitForCSVSucceeded(ctx, dynamicClient, namespace, csvName, waitTimeout)
 							if err == nil {
-								d.Set("csv_phase", csvPhase)
+								_ = d.Set("csv_phase", csvPhase)
 							}
 						}
 					}
@@ -413,7 +482,10 @@ func resourceOperatorUpdate(ctx context.Context, d *schema.ResourceData, meta in
 }
 
 func resourceOperatorDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	c := meta.(*client.Client)
+	c, ok := meta.(*client.Client)
+	if !ok {
+		return diag.FromErr(fmt.Errorf("invalid client type"))
+	}
 	dynamicClient := c.Dynamic
 
 	idParts := strings.Split(d.Id(), "/")
