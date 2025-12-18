@@ -193,8 +193,8 @@ func resourceOperatorCreate(ctx context.Context, d *schema.ResourceData, meta in
 
 	// Set ID and state
 	d.SetId(fmt.Sprintf("%s/%s", namespace, name))
-	d.Set("installed_csv", csvName)
-	d.Set("csv_phase", csvPhase)
+	_ = d.Set("installed_csv", csvName)
+	_ = d.Set("csv_phase", csvPhase)
 
 	return resourceOperatorRead(ctx, d, meta)
 }
@@ -221,20 +221,20 @@ func resourceOperatorRead(ctx context.Context, d *schema.ResourceData, meta inte
 	// Read Subscription spec to populate state
 	if spec, found, _ := unstructured.NestedMap(sub.Object, "spec"); found {
 		if channel, found, _ := unstructured.NestedString(spec, "channel"); found {
-			d.Set("channel", channel)
+			_ = d.Set("channel", channel)
 		}
 		if source, found, _ := unstructured.NestedString(spec, "source"); found {
-			d.Set("source", source)
+			_ = d.Set("source", source)
 		}
 		if installPlanApproval, found, _ := unstructured.NestedString(spec, "installPlanApproval"); found {
-			d.Set("install_plan_approval", installPlanApproval)
+			_ = d.Set("install_plan_approval", installPlanApproval)
 		}
 		if startingCSV, found, _ := unstructured.NestedString(spec, "startingCSV"); found && startingCSV != "" {
 			// Extract version from CSV name format: {name}.v{version}
 			// This is a best-effort extraction
 			if strings.HasPrefix(startingCSV, name+".v") {
 				version := strings.TrimPrefix(startingCSV, name+".v")
-				d.Set("version", version)
+				_ = d.Set("version", version)
 			}
 		}
 	}
@@ -250,7 +250,7 @@ func resourceOperatorRead(ctx context.Context, d *schema.ResourceData, meta inte
 				}
 			}
 			if len(resourceLabels) > 0 {
-				d.Set("labels", resourceLabels)
+				_ = d.Set("labels", resourceLabels)
 			}
 		}
 	}
@@ -258,14 +258,14 @@ func resourceOperatorRead(ctx context.Context, d *schema.ResourceData, meta inte
 	// Read CSV if available
 	if status, found, _ := unstructured.NestedMap(sub.Object, "status"); found {
 		if csvName, found, _ := unstructured.NestedString(status, "installedCSV"); found && csvName != "" {
-			d.Set("installed_csv", csvName)
+			_ = d.Set("installed_csv", csvName)
 
 			// Read CSV phase
 			csv, err := getCSV(ctx, dynamicClient, namespace, csvName)
 			if err == nil {
 				if csvStatus, found, _ := unstructured.NestedMap(csv.Object, "status"); found {
 					if phase, found, _ := unstructured.NestedString(csvStatus, "phase"); found {
-						d.Set("csv_phase", phase)
+						_ = d.Set("csv_phase", phase)
 					}
 				}
 			}
@@ -273,8 +273,8 @@ func resourceOperatorRead(ctx context.Context, d *schema.ResourceData, meta inte
 	}
 
 	// Set namespace and name
-	d.Set("namespace", namespace)
-	d.Set("name", name)
+	_ = d.Set("namespace", namespace)
+	_ = d.Set("name", name)
 
 	return nil
 }
@@ -391,7 +391,7 @@ func resourceOperatorUpdate(ctx context.Context, d *schema.ResourceData, meta in
 				timeout = 10 * time.Minute
 				csvName, err := waitForInstalledCSV(ctx, dynamicClient, namespace, name, timeout)
 				if err == nil {
-					d.Set("installed_csv", csvName)
+					_ = d.Set("installed_csv", csvName)
 
 					// Wait for CSV to succeed if requested
 					if d.Get("wait_for_csv").(bool) {
@@ -400,7 +400,7 @@ func resourceOperatorUpdate(ctx context.Context, d *schema.ResourceData, meta in
 						if err == nil {
 							csvPhase, err := waitForCSVSucceeded(ctx, dynamicClient, namespace, csvName, waitTimeout)
 							if err == nil {
-								d.Set("csv_phase", csvPhase)
+								_ = d.Set("csv_phase", csvPhase)
 							}
 						}
 					}

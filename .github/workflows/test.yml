@@ -61,6 +61,7 @@ jobs:
       with:
         version: latest
         working-directory: ./provider
+        args: --timeout=5m
 
   build:
     name: Build
@@ -81,10 +82,10 @@ jobs:
 
     - name: Build provider
       working-directory: ./provider
-      run: go build -o terraform-provider-openshift-operator
+      run: go build -o terraform-provider-openshift
 
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
       with:
         name: provider-${{ matrix.os }}
-        path: provider/terraform-provider-openshift-operator
+        path: provider/terraform-provider-openshift

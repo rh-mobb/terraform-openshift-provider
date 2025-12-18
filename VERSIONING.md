@@ -57,7 +57,6 @@ git push origin v0.1.1
 The GitHub Actions workflow will automatically:
 - Build binaries for all platforms
 - Create checksums
-- Sign with GPG
 - Create a GitHub release
 
 Or create manually:

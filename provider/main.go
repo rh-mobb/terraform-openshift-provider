@@ -1,3 +1,4 @@
+// Package main provides the entry point for the Terraform provider binary.
 package main
 
 import (
@@ -28,8 +29,8 @@ func main() {
 	}
 
 	if debugMode {
-		err := plugin.Debug(context.Background(), "registry.terraform.io/rh-mobb/openshift", opts)
-		if err != nil {
+		//nolint:staticcheck // plugin.Debug is the standard way to debug providers in SDK v2
+		if err := plugin.Debug(context.Background(), "registry.terraform.io/rh-mobb/openshift", opts); err != nil {
 			log.Fatal(err.Error())
 		}
 		return

@@ -1,3 +1,4 @@
+// Package resources implements Terraform resources and data sources for OpenShift operators.
 package resources
 
 import (
@@ -7,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
+// ResourceOperator returns the schema for the openshift_operator resource.
 func ResourceOperator() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceOperatorCreate,
