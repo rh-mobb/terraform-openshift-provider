@@ -53,16 +53,24 @@ func configureProvider(_ context.Context, d *schema.ResourceData) (interface{}, 
 	var insecure bool
 
 	if v, ok := d.GetOk("kubeconfig"); ok {
-		kubeconfig = v.(string)
+		if s, ok := v.(string); ok {
+			kubeconfig = s
+		}
 	}
 	if v, ok := d.GetOk("host"); ok {
-		host = v.(string)
+		if s, ok := v.(string); ok {
+			host = s
+		}
 	}
 	if v, ok := d.GetOk("token"); ok {
-		token = v.(string)
+		if s, ok := v.(string); ok {
+			token = s
+		}
 	}
 	if v, ok := d.GetOk("insecure"); ok {
-		insecure = v.(bool)
+		if b, ok := v.(bool); ok {
+			insecure = b
+		}
 	}
 
 	cl, err := client.NewClient(kubeconfig, host, token, insecure)

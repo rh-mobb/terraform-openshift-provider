@@ -50,7 +50,11 @@ func ResourceOperator() *schema.Resource {
 				Default:     "Automatic",
 				Description: "Install plan approval strategy ('Automatic' or 'Manual').",
 				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
-					v := val.(string)
+					v, ok := val.(string)
+					if !ok {
+						errs = append(errs, fmt.Errorf("%q must be a string", key))
+						return
+					}
 					if v != "Automatic" && v != "Manual" {
 						errs = append(errs, fmt.Errorf("%q must be either 'Automatic' or 'Manual', got: %s", key, v))
 					}

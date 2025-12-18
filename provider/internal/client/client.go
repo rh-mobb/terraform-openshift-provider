@@ -41,7 +41,10 @@ func NewClient(kubeconfig, host, token string, insecure bool) (*Client, error) {
 		}
 	} else {
 		// Try to use kubeconfig from default locations
-		home, _ := os.UserHomeDir()
+		home, err := os.UserHomeDir()
+		if err != nil {
+			return nil, fmt.Errorf("failed to get user home directory: %w", err)
+		}
 		kubeconfigPath := filepath.Join(home, ".kube", "config")
 		if _, err := os.Stat(kubeconfigPath); err == nil {
 			config, err = clientcmd.BuildConfigFromFlags("", kubeconfigPath)

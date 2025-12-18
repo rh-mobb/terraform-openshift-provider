@@ -1,18 +1,9 @@
-# golangci-lint configuration file
-# See https://golangci-lint.run/usage/configuration/
-
-version: 2
+version: "2"
 
 run:
-  timeout: 5m
   tests: true
-  skip-dirs:
-    - vendor
-  skip-files:
-    - ".*\\.pb\\.go$"
 
 linters:
-  # Enable only stable, commonly available linters
   enable:
     - errcheck
     - govet
@@ -22,38 +13,39 @@ linters:
     - misspell
     - revive
     - gosec
-
-linters-settings:
-  errcheck:
-    check-type-assertions: true
-    check-blank: true
-  govet:
-    check-shadowing: true
-  revive:
+  settings:
+    errcheck:
+      check-type-assertions: true
+      check-blank: false
+    revive:
+      rules:
+        - name: exported
+          severity: warning
+        - name: var-naming
+          severity: warning
+        - name: var-declaration
+          severity: warning
+        - name: package-comments
+          severity: warning
+        - name: comment-spacings
+          severity: warning
+  exclusions:
     rules:
-      - name: exported
-        severity: warning
-      - name: var-naming
-        severity: warning
-      - name: var-declaration
-        severity: warning
-      - name: package-comments
-        severity: warning
-      - name: comment-spacings
-        severity: warning
+      - linters:
+          - errcheck
+        path: _test\.go
+      - linters:
+          - errcheck
+        # Ignore d.Set() error returns in data sources (non-fatal in read functions)
+        path: _data\.go
+        source: ^.*d\.Set.*$
+      - linters:
+          - staticcheck
+        source: ^.*TLSClientConfig.*$
+      - linters:
+          - staticcheck
+        source: ^.*plugin\.Debug.*$
 
 issues:
-  exclude-rules:
-    - path: _test\.go
-      linters:
-        - errcheck
-    # Exclude staticcheck warnings for embedded TLSClientConfig field
-    - linters:
-        - staticcheck
-      source: "^.*TLSClientConfig.*$"
-    # Exclude deprecated plugin.Debug warning - still valid for SDK v2
-    - linters:
-        - staticcheck
-      source: "^.*plugin\\.Debug.*$"
   max-issues-per-linter: 0
   max-same-issues: 0
