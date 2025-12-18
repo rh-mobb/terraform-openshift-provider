@@ -1,0 +1,53 @@
+# Cursor Rules for Terraform Provider OpenShift
+
+This repository uses the Terraform Provider SDK v2 for OpenShift operator management.
+
+## Primary Reference
+
+**Always read and follow AGENTS.md** - It contains comprehensive guidelines for working with this repository, including:
+- Repository structure and conventions
+- Versioning process and best practices
+- Code style and patterns
+- Testing requirements
+- Release process
+- Common tasks and file locations
+
+## Key Conventions
+
+1. **Provider Name**: `openshift` (registry: `rh-mobb/openshift`)
+2. **Resource Name**: `openshift_operator`
+3. **Version Format**: Git tags use `v` prefix (e.g., `v0.1.0`)
+4. **Temp Directory**: Use `./temp/` for temporary files (NOT committed)
+
+## When Making Changes
+
+- Always update CHANGELOG.md for user-facing changes
+- Run tests: `cd provider && make test`
+- Update documentation in both `provider/docs/` and `website/docs/`
+- Follow Go best practices and Terraform provider patterns
+- Never commit files in `temp/` directory
+
+## Important Files
+
+- `AGENTS.md` - Comprehensive AI agent guide
+- `VERSIONING.md` - Versioning strategy and process
+- `BEST_PRACTICES.md` - Best practices checklist
+- `CHANGELOG.md` - Version history
+- `provider/Makefile` - Build commands
+
+## Code Style
+
+- Go: Use `gofmt`, follow standard conventions
+- Tests: Add unit tests for new functionality
+- Errors: Use `diag.Diagnostics` with detailed messages
+- Documentation: Update both markdown and website docs
+
+## Before Committing
+
+1. Run tests: `make test`
+2. Format code: `make fmt`
+3. Check linting: `make lint`
+4. Update CHANGELOG.md if needed
+5. Verify no files in `temp/` are staged
+
+See AGENTS.md for complete guidelines.

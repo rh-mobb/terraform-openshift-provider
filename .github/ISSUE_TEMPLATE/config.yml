@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Documentation
+    url: https://github.com/rh-mobb/terraform-provider-openshift/blob/main/README.md
+    about: Check the documentation for answers to common questions
+  - name: Security Issue
+    url: https://github.com/rh-mobb/terraform-provider-openshift/security/advisories/new
+    about: Report a security vulnerability (please do not create a public issue)
