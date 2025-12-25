@@ -46,7 +46,7 @@ jobs:
         sha256sum terraform-provider-openshift_* > terraform-provider-openshift_${GITHUB_REF#refs/tags/}_SHA256SUMS
 
     - name: Create GitHub Release
-      uses: softprops/action-gh-release@v1
+      uses: softprops/action-gh-release@v2
       with:
         files: |
           provider/dist/*
