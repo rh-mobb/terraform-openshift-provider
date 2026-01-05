@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.2] - 2025-01-XX
+
+### Fixed
+- Fixed potential issue where operators could be installed to "default" namespace when `create_namespace = false` and the specified namespace doesn't exist
+- Added namespace existence validation when `create_namespace = false` to prevent resources from being created in non-existent namespaces
+
 ## [0.1.1] - 2025-12-18
 
 ### Fixed
@@ -51,6 +57,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Provider namespace set to `rh-mobb/openshift` for Terraform Registry publication
 
-[Unreleased]: https://github.com/rh-mobb/terraform-provider-openshift/compare/v0.1.1...HEAD
+[Unreleased]: https://github.com/rh-mobb/terraform-provider-openshift/compare/v0.1.2...HEAD
+[0.1.2]: https://github.com/rh-mobb/terraform-provider-openshift/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/rh-mobb/terraform-provider-openshift/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/rh-mobb/terraform-provider-openshift/releases/tag/v0.1.0

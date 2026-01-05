@@ -105,6 +105,17 @@ func resourceOperatorCreate(ctx context.Context, d *schema.ResourceData, meta in
 				return diag.FromErr(fmt.Errorf("failed to create namespace %s: %w", namespace, err))
 			}
 		}
+	} else {
+		// Verify namespace exists when create_namespace is false
+		nsGVR := k8sschema.GroupVersionResource{
+			Group:    "",
+			Version:  "v1",
+			Resource: "namespaces",
+		}
+		_, err := dynamicClient.Resource(nsGVR).Get(ctx, namespace, metav1.GetOptions{})
+		if err != nil {
+			return diag.FromErr(fmt.Errorf("namespace %s does not exist and create_namespace is false. Either create the namespace first or set create_namespace = true", namespace))
+		}
 	}
 
 	// 2. Create OperatorGroup
